@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Story Narrator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Source+Serif+4:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #16120f;
+    --bg-panel: #211a15;
+    --bg-panel-raised: #2a221b;
+    --stitch: #3a2f26;
+    --accent-gold: #c9a15a;
+    --accent-ember: #9c3b28;
+    --text-primary: #f2e9db;
+    --text-muted: #a89985;
+    --text-faint: #6f6355;
+    --error: #d9634a;
+    --radius: 3px;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-font-smoothing: antialiased; }
+
+  body {
+    margin: 0;
+    background: radial-gradient(ellipse at top, #1d1712 0%, var(--bg) 55%), var(--bg);
+    color: var(--text-primary);
+    font-family: 'Source Serif 4', Georgia, serif;
+    min-height: 100vh;
+    padding: 64px 24px 96px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+
+  .page { max-width: 640px; margin: 0 auto; }
+
+  /* ---- Header ---- */
+  header { text-align: center; margin-bottom: 48px; }
+
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent-gold);
+    display: block;
+    margin-bottom: 14px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(34px, 6vw, 48px);
+    line-height: 1.05;
+    margin: 0 0 12px;
+    letter-spacing: -0.01em;
+  }
+
+  .tagline {
+    color: var(--text-muted);
+    font-size: 16px;
+    max-width: 420px;
+    margin: 0 auto;
+    line-height: 1.55;
+  }
+
+  .ink-divider { width: 100%; height: 28px; margin: 28px 0 0; display: block; }
+  .ink-divider path {
+    fill: none;
+    stroke: var(--accent-ember);
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-dasharray: 640;
+    stroke-dashoffset: 640;
+    animation: draw-ink 1.4s ease-out forwards;
+  }
+  @keyframes draw-ink { to { stroke-dashoffset: 0; } }
+
+  /* ---- Manuscript panel ---- */
+  .manuscript {
+    background: var(--bg-panel);
+    border: 1px solid var(--stitch);
+    border-radius: var(--radius);
+    padding: 28px;
+    position: relative;
+    margin-bottom: 56px;
+  }
+  .manuscript::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    border: 1px dashed #3a2f2680;
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
+  .manuscript-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin: 0 0 16px;
+  }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; margin-bottom: 18px; }
+  .tab {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--stitch);
+    color: var(--text-faint);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .tab[aria-selected="true"] {
+    color: var(--accent-gold);
+    border-color: var(--accent-gold);
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel[data-active="true"] { display: block; }
+
+  .file-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .file-picker { flex: 1 1 220px; position: relative; }
+
+  input[type="file"], input[type="text"], textarea {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--bg);
+    border: 1px solid var(--stitch);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+  }
+  input[type="text"]::placeholder, textarea::placeholder { color: var(--text-faint); }
+  input[type="file"] { color: var(--text-muted); }
+  input[type="file"]::file-selector-button {
+    background: var(--bg-panel-raised);
+    color: var(--text-primary);
+    border: 1px solid var(--stitch);
+    border-radius: var(--radius);
+    padding: 6px 12px;
+    margin-right: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  textarea { resize: vertical; min-height: 120px; line-height: 1.6; font-family: 'Source Serif 4', serif; font-size: 13px; }
+
+  .field { margin-bottom: 12px; }
+  .field label {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 6px;
+  }
+  .char-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-faint);
+    text-align: right;
+    margin-top: 4px;
+  }
+  .char-count[data-over="true"] { color: var(--error); }
+
+  input[type="file"]:focus-visible, input[type="text"]:focus-visible,
+  textarea:focus-visible, button:focus-visible, .tab:focus-visible {
+    outline: 2px solid var(--accent-gold);
+    outline-offset: 2px;
+  }
+
+  button.primary {
+    background: var(--accent-ember);
+    color: #f6ece2;
+    border: none;
+    border-radius: var(--radius);
+    padding: 12px 22px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  button.primary:hover:not(:disabled) { background: #b34632; }
+  button.primary:disabled { background: var(--bg-panel-raised); color: var(--text-faint); cursor: not-allowed; }
+
+  /* Reel spinner shown inside the upload button while narrating */
+  .reel {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid #f6ece280;
+    border-top-color: #f6ece2;
+    animation: spin 0.7s linear infinite;
+    display: none;
+    flex-shrink: 0;
+  }
+  button.primary[data-loading="true"] .reel { display: inline-block; }
+  button.primary[data-loading="true"] .btn-label::after { content: ""; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #status, #writeStatus {
+    margin-top: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    min-height: 16px;
+  }
+  #status[data-state="error"], #writeStatus[data-state="error"] { color: var(--error); }
+  #status[data-state="success"], #writeStatus[data-state="success"] { color: var(--accent-gold); }
+
+  /* ---- Chapters ---- */
+  .chapters-heading { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; }
+  .chapters-heading h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 20px; margin: 0; }
+  .chapters-heading span { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-faint); }
+
+  #audioContainer { display: flex; flex-direction: column; gap: 14px; }
+
+  .card {
+    background: var(--bg-panel);
+    border: 1px solid var(--stitch);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    position: relative;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 14px; bottom: 14px;
+    width: 3px;
+    background: var(--accent-gold);
+    border-radius: 0 2px 2px 0;
+  }
+  .card[data-removing="true"] { opacity: 0; transform: translateX(8px); }
+
+  .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
+  .card-title { font-family: 'Fraunces', serif; font-weight: 600; font-size: 17px; margin: 0; word-break: break-word; }
+
+  .close-btn {
+    background: transparent;
+    border: 1px solid var(--stitch);
+    color: var(--text-faint);
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    line-height: 1;
+    transition: color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  }
+  .close-btn:hover { color: var(--error); border-color: var(--error); transform: rotate(90deg); }
+
+  .card-meta {
+    display: flex; gap: 16px; flex-wrap: wrap;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-bottom: 16px;
+  }
+  .card-meta strong { color: var(--text-muted); font-weight: 500; }
+
+  /* ---- Custom player (signature element: equalizer that reacts to play state) ---- */
+  .player { display: flex; align-items: center; gap: 12px; }
+
+  .play-btn {
+    flex-shrink: 0;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    border: none;
+    background: var(--accent-gold);
+    color: #211a15;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.12s ease, background 0.15s ease;
+  }
+  .play-btn:hover { background: #d9b06f; }
+  .play-btn:active { transform: scale(0.92); }
+  .play-btn svg { width: 14px; height: 14px; }
+  .play-btn .icon-pause { display: none; }
+  .play-btn[data-playing="true"] .icon-play { display: none; }
+  .play-btn[data-playing="true"] .icon-pause { display: block; }
+
+  .player-body { flex: 1; min-width: 0; }
+
+  .seek-row { display: flex; align-items: center; gap: 10px; }
+
+  input[type="range"].seek {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 3px;
+    background: var(--stitch);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type="range"].seek::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 11px; height: 11px;
+    border-radius: 50%;
+    background: var(--accent-gold);
+    cursor: pointer;
+    margin-top: -4px;
+  }
+  input[type="range"].seek::-moz-range-thumb {
+    width: 11px; height: 11px; border: none; border-radius: 50%;
+    background: var(--accent-gold); cursor: pointer;
+  }
+  input[type="range"].seek::-webkit-slider-runnable-track { height: 3px; border-radius: 2px; background: var(--stitch); }
+
+  .time {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-faint);
+    flex-shrink: 0;
+    min-width: 34px;
+    text-align: right;
+  }
+
+  /* Equalizer bars — animate only while the track is playing */
+  .eq { display: flex; align-items: flex-end; gap: 2px; height: 14px; margin-top: 8px; }
+  .eq span {
+    width: 3px;
+    background: var(--accent-ember);
+    border-radius: 1px;
+    height: 3px;
+    opacity: 0.45;
+    transition: opacity 0.2s ease;
+  }
+  .play-btn[data-playing="true"] ~ .player-body .eq span { opacity: 1; animation: eq-bounce 0.9s ease-in-out infinite; }
+  .eq span:nth-child(1) { animation-delay: 0s; }
+  .eq span:nth-child(2) { animation-delay: 0.12s; }
+  .eq span:nth-child(3) { animation-delay: 0.24s; }
+  .eq span:nth-child(4) { animation-delay: 0.36s; }
+  .eq span:nth-child(5) { animation-delay: 0.18s; }
+  @keyframes eq-bounce {
+    0%, 100% { height: 3px; }
+    50% { height: 14px; }
+  }
+
+  .empty-state, .error-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-faint);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    border: 1px dashed var(--stitch);
+    border-radius: var(--radius);
+  }
+  .error-state { color: var(--error); }
+
+  @media (max-width: 480px) {
+    body { padding: 40px 16px 72px; }
+    .file-row { flex-direction: column; }
+    button.primary { width: 100%; justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header>
+    <span class="eyebrow">Text → Narrated Audio</span>
+    <h1>Story Narrator</h1>
+    <p class="tagline">Bring a story, or write one on the spot. It comes back read aloud, ready to press play.</p>
+    <svg class="ink-divider" viewBox="0 0 600 28" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0,14 C40,2 60,26 100,14 C140,2 160,26 200,14 C240,2 260,26 300,14 C340,2 360,26 400,14 C440,2 460,26 500,14 C540,2 560,26 600,14" />
+    </svg>
+  </header>
+
+  <section class="manuscript">
+    <p class="manuscript-label">New manuscript</p>
+
+    <div class="tabs" role="tablist" aria-label="Manuscript source">
+      <button class="tab" id="tabFile" role="tab" aria-selected="true" aria-controls="panelFile" type="button">Upload .txt</button>
+      <button class="tab" id="tabWrite" role="tab" aria-selected="false" aria-controls="panelWrite" type="button">Write a story</button>
+    </div>
+
+    <div class="tab-panel" id="panelFile" data-active="true" role="tabpanel" aria-labelledby="tabFile">
+      <div class="file-row">
+        <div class="file-picker">
+          <input type="file" id="fileInput" accept=".txt,text/plain" aria-label="Choose a story text file">
+        </div>
+        <button class="primary" id="uploadBtn" type="button">
+          <span class="reel"></span><span class="btn-label">Narrate it</span>
+        </button>
+      </div>
+      <p id="status" role="status" aria-live="polite"></p>
+    </div>
+
+    <div class="tab-panel" id="panelWrite" role="tabpanel" aria-labelledby="tabWrite">
+      <div class="field">
+        <label for="topicInput">Topic / title</label>
+        <input type="text" id="topicInput" placeholder="e.g. A lighthouse keeper's last night" maxlength="120">
+      </div>
+      <div class="field">
+        <label for="contentInput">Story</label>
+        <textarea id="contentInput" placeholder="Write the story here…"></textarea>
+        <div class="char-count" id="charCount">0 / 20,000</div>
+      </div>
+      <button class="primary" id="writeBtn" type="button">
+        <span class="reel"></span><span class="btn-label">Narrate it</span>
+      </button>
+      <p id="writeStatus" role="status" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <div class="chapters-heading">
+    <h2>Narrated stories</h2>
+    <span id="storyCount"></span>
+  </div>
+
+  <div id="audioContainer">
+    <div class="empty-state">Loading narrated stories…</div>
+  </div>
+
+</div>
+
+<script>
+const API = "https://90f503fta8.execute-api.ap-south-1.amazonaws.com";
+const S3_BASE = "https://text-to-audio-project123.s3.ap-south-1.amazonaws.com";
+const MAX_CHARS = 20000;
+
+const els = {
+  tabFile: document.getElementById("tabFile"),
+  tabWrite: document.getElementById("tabWrite"),
+  panelFile: document.getElementById("panelFile"),
+  panelWrite: document.getElementById("panelWrite"),
+  fileInput: document.getElementById("fileInput"),
+  uploadBtn: document.getElementById("uploadBtn"),
+  status: document.getElementById("status"),
+  topicInput: document.getElementById("topicInput"),
+  contentInput: document.getElementById("contentInput"),
+  charCount: document.getElementById("charCount"),
+  writeBtn: document.getElementById("writeBtn"),
+  writeStatus: document.getElementById("writeStatus"),
+  audioContainer: document.getElementById("audioContainer"),
+  storyCount: document.getElementById("storyCount"),
+};
+
+// Tracks the currently playing <audio> element so starting a new one pauses the rest.
+let activeAudio = null;
+
+initTabs();
+els.uploadBtn.addEventListener("click", () => uploadFile("file"));
+els.writeBtn.addEventListener("click", () => uploadFile("write"));
+els.contentInput.addEventListener("input", updateCharCount);
+window.addEventListener("DOMContentLoaded", loadAudioFiles);
+
+function initTabs() {
+  const tabs = [
+    [els.tabFile, els.panelFile],
+    [els.tabWrite, els.panelWrite],
+  ];
+  tabs.forEach(([tab, panel]) => {
+    tab.addEventListener("click", () => {
+      tabs.forEach(([t, p]) => {
+        const active = t === tab;
+        t.setAttribute("aria-selected", String(active));
+        p.dataset.active = String(active);
+      });
+    });
+  });
+}
+
+function updateCharCount() {
+  const len = els.contentInput.value.length;
+  els.charCount.textContent = `${len.toLocaleString()} / ${MAX_CHARS.toLocaleString()}`;
+  els.charCount.dataset.over = String(len > MAX_CHARS);
+}
+
+function setStatus(el, message, state) {
+  el.textContent = message;
+  if (state) el.setAttribute("data-state", state);
+  else el.removeAttribute("data-state");
+}
+
+function setButtonLoading(btn, loading) {
+  btn.disabled = loading;
+  btn.dataset.loading = String(loading);
+}
+
+function slugify(str) {
+  return str.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "untitled-story";
+}
+
+// mode: "file" reads the picked .txt file, "write" builds one from the topic + textarea.
+async function uploadFile(mode) {
+  const btn = mode === "file" ? els.uploadBtn : els.writeBtn;
+  const statusEl = mode === "file" ? els.status : els.writeStatus;
+
+  let fileName, text;
+
+  if (mode === "file") {
+    const file = els.fileInput.files[0];
+    if (!file) return setStatus(statusEl, "Choose a .txt file first.", "error");
+    if (!file.name.toLowerCase().endsWith(".txt")) return setStatus(statusEl, "Only .txt files are supported.", "error");
+    fileName = file.name;
+    text = await file.text();
+  } else {
+    const topic = els.topicInput.value.trim();
+    const content = els.contentInput.value.trim();
+    if (!topic) return setStatus(statusEl, "Give the story a topic or title.", "error");
+    if (!content) return setStatus(statusEl, "Write the story content first.", "error");
+    if (content.length > MAX_CHARS) return setStatus(statusEl, `Story is too long (max ${MAX_CHARS.toLocaleString()} characters).`, "error");
+    fileName = `${slugify(topic)}.txt`;
+    text = `${topic}\n\n${content}`;
+  }
+
+  setButtonLoading(btn, true);
+  setStatus(statusEl, "Narrating — this can take a moment…");
+
+  try {
+    const response = await fetch(`${API}/upload`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fileName, text })
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || `Upload failed (${response.status})`);
+
+    setStatus(statusEl, `"${fileName}" is narrated.`, "success");
+    if (mode === "file") { els.fileInput.value = ""; }
+    else { els.topicInput.value = ""; els.contentInput.value = ""; updateCharCount(); }
+
+    await loadAudioFiles();
+  } catch (err) {
+    console.error(err);
+    setStatus(statusEl, err.message || "Upload failed. Try again.", "error");
+  } finally {
+    setButtonLoading(btn, false);
+  }
+}
+
+async function loadAudioFiles() {
+  try {
+    const response = await fetch(`${API}/audio`);
+    if (!response.ok) throw new Error(`Failed to load stories (${response.status})`);
+    const data = await response.json();
+
+    els.audioContainer.innerHTML = "";
+    activeAudio = null;
+
+    if (!Array.isArray(data) || data.length === 0) {
+      els.storyCount.textContent = "";
+      els.audioContainer.innerHTML = `<div class="empty-state">No stories narrated yet. Upload one above.</div>`;
+      return;
+    }
+
+    els.storyCount.textContent = `${data.length} ${data.length === 1 ? "story" : "stories"}`;
+
+    const fragment = document.createDocumentFragment();
+    data.forEach(item => fragment.appendChild(buildCard(item)));
+    els.audioContainer.appendChild(fragment);
+
+  } catch (err) {
+    console.error(err);
+    els.storyCount.textContent = "";
+    els.audioContainer.innerHTML = `<div class="error-state">Could not load narrated stories. Refresh to try again.</div>`;
+  }
+}
+
+function buildCard(item) {
+  const card = document.createElement("div");
+  card.className = "card";
+
+  const uploadedAt = item.uploadedAt ? new Date(item.uploadedAt).toLocaleString() : "—";
+
+  card.innerHTML = `
+    <div class="card-head">
+      <p class="card-title"></p>
+      <button class="close-btn" type="button" aria-label="Remove from list" title="Remove from list">✕</button>
+    </div>
+    <div class="card-meta">
+      <span><strong>Voice</strong> · <span data-voice></span></span>
+      <span><strong>Narrated</strong> · <span data-date></span></span>
+    </div>
+    <div class="player">
+      <button class="play-btn" type="button" aria-label="Play">
+        <svg class="icon-play" viewBox="0 0 16 16" fill="currentColor"><path d="M3 2l11 6-11 6V2z"/></svg>
+        <svg class="icon-pause" viewBox="0 0 16 16" fill="currentColor"><rect x="3" y="2" width="4" height="12"/><rect x="9" y="2" width="4" height="12"/></svg>
+      </button>
+      <div class="player-body">
+        <div class="seek-row">
+          <input type="range" class="seek" min="0" max="100" value="0" aria-label="Seek">
+          <span class="time" data-time>0:00</span>
+        </div>
+        <div class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+      </div>
+    </div>
+  `;
+
+  // Title/meta go through textContent, not innerHTML, so filenames can't inject markup.
+  card.querySelector(".card-title").textContent = item.fileName || "Untitled";
+  card.querySelector("[data-voice]").textContent = item.voice || "default";
+  card.querySelector("[data-date]").textContent = uploadedAt;
+
+  const audio = new Audio(`${S3_BASE}/${item.audioKey}`);
+  audio.preload = "none";
+
+  const playBtn = card.querySelector(".play-btn");
+  const seek = card.querySelector(".seek");
+  const time = card.querySelector("[data-time]");
+  let seeking = false;
+
+  playBtn.addEventListener("click", () => {
+    if (audio.paused) {
+      if (activeAudio && activeAudio !== audio) activeAudio.pause();
+      audio.play();
+      activeAudio = audio;
+    } else {
+      audio.pause();
+    }
+  });
+
+  audio.addEventListener("play", () => { playBtn.dataset.playing = "true"; playBtn.setAttribute("aria-label", "Pause"); });
+  audio.addEventListener("pause", () => { playBtn.dataset.playing = "false"; playBtn.setAttribute("aria-label", "Play"); });
+  audio.addEventListener("ended", () => { playBtn.dataset.playing = "false"; seek.value = 0; });
+
+  audio.addEventListener("loadedmetadata", () => { seek.max = String(Math.floor(audio.duration) || 0); });
+  audio.addEventListener("timeupdate", () => {
+    if (seeking) return;
+    seek.value = String(Math.floor(audio.currentTime));
+    time.textContent = formatTime(audio.currentTime);
+  });
+  seek.addEventListener("input", () => { seeking = true; time.textContent = formatTime(Number(seek.value)); });
+  seek.addEventListener("change", () => { audio.currentTime = Number(seek.value); seeking = false; });
+
+  card.querySelector(".close-btn").addEventListener("click", () => {
+    audio.pause();
+    if (activeAudio === audio) activeAudio = null;
+    card.dataset.removing = "true";
+    card.addEventListener("transitionend", () => card.remove(), { once: true });
+  });
+
+  return card;
+}
+
+function formatTime(seconds) {
+  if (!Number.isFinite(seconds)) return "0:00";
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60).toString().padStart(2, "0");
+  return `${m}:${s}`;
+}
+</script>
+
+</body>
+</html>
