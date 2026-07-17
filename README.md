@@ -133,37 +133,37 @@ Previously generated narrations are displayed with an audio player.
 
 # 📸 Screenshots
 
-## Home Page
+## Amazon S3 Bucket
 
 ![](images/Screenshot%202026-07-17%20104133.png)
 
 ---
 
-## Amazon S3 Bucket
+## Project Fils
 
 ![](images/Screenshot%202026-07-17%20104143.png)
 
 ---
 
-## Project Files
+## AWS Lambda Configuration
 
 ![](images/Screenshot%202026-07-17%20104159.png)
 
 ---
 
-## AWS Lambda Configuration
+## API Gateway Routes
 
 ![](images/Screenshot%202026-07-17%20104231.png)
 
 ---
 
-## API Gateway Routes
+## Home Page
 
 ![](images/Screenshot%202026-07-17%20104304.png)
 
 ---
 
-## Narrated Stories
+## Narrated Stories audio
 
 ![](images/Screenshot%202026-07-17%20104317.png)
 
